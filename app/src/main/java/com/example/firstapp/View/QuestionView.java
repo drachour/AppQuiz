@@ -38,7 +38,7 @@ public class QuestionView extends AppCompatActivity {
         Intent intent = getIntent();
         context = getApplicationContext();
 
-        // Extract the values you've sent from MainActivity
+        // Extract the values from MainActivity
         int userId = intent.getIntExtra("userId", -1); // -1 is a default value
         String difficulty = intent.getStringExtra("difficulty");
 
@@ -134,13 +134,13 @@ public class QuestionView extends AppCompatActivity {
             // Change the color of the button to green
             clickedButton.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
 
-            // Show a Toast message indicating the answer is correct
+            // Show a Toast message
             Toast.makeText(context, "Bonne réponse!", Toast.LENGTH_SHORT).show();
         } else {
             // Change the color of the button to red
             clickedButton.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
-            // Show a Toast message indicating the answer is incorrect
+            // Show a Toast message
             Toast.makeText(context, "Mauvaise réponse!", Toast.LENGTH_SHORT).show();
         }
         disableButtonColors(clickedButton);

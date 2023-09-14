@@ -4,12 +4,12 @@ import com.example.firstapp.Data.DataFile;
 
 public class User {
 
-    // variable
+    // Variable
     private int id;
     private String username;
     private String isLast;
 
-    //getter & setter
+    // Getter & Setter
     public int getId(){
         return this.id;
     }
@@ -24,7 +24,7 @@ public class User {
     }
     public String getIsLast(){return this.isLast;}
     public void setIsLast(String isLast){this.isLast = isLast;}
-    //constructor
+    // Constructor
     public User(int id, String username, String isLast) {
         this.id = id;
         this.username = username;

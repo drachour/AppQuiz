@@ -2,7 +2,7 @@ package com.example.firstapp.Model;
 
 public class Result {
 
-    // variable
+    // Variable
     private int id;
     private int userId;
     private String username;
@@ -59,7 +59,7 @@ public class Result {
         this.wrongQty = wrongQty;
     }
 
-    // Contructor
+    // Constructor
     public Result(int id, int userId, String username, Difficulty difficulty, int score, int wrongQty) {
         this.id = id;
         this.userId = userId;

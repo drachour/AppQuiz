@@ -5,14 +5,14 @@ import java.util.List;
 
 public class Question {
 
-    // variable
+    // Variable
     private int id;
     private String questionText;
     private String correctAnswer;
     private List<String> wrongAnswers;
     private Difficulty difficulty;
 
-    // getter & setter
+    // Getter & Setter
     public  int getId(){
         return id;
     }
@@ -29,7 +29,7 @@ public class Question {
         return difficulty;
     }
 
-    // constructor
+    // Constructor
     public Question(int id, String questionText, String correctAnswer, List<String> wrongAnswers, Difficulty difficulty) {
         this.id = id;
         this.questionText = questionText;
