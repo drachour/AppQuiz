@@ -70,7 +70,6 @@ public class MainActivity extends AppCompatActivity {
         // Disable the button
         myButton.setEnabled(false);
 
-        List<User> tmp = dataHandleController.getListUser();
         // Retrieve stored username if it exists
         currentUser = userController.getLastUser();
         if (currentUser != null) {

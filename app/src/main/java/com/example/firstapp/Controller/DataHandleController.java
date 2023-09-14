@@ -14,13 +14,6 @@ import java.util.Map;
 public class DataHandleController {
     DataFile dataFile;
 
-    public List<User> getListUser(){
-        return dataFile.getListUserData();
-    }
-
-    public User getLastUser(){
-        return dataFile.getLastUser();
-    }
     public void retrieveStoredData(Context context) {
         dataFile = DataFile.getInstance();
 

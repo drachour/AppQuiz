@@ -42,7 +42,7 @@ public class QuestionView extends AppCompatActivity {
         int userId = intent.getIntExtra("userId", -1); // -1 is a default value
         String difficulty = intent.getStringExtra("difficulty");
 
-        // Initialize UI components
+        // Initialize UI
         questionTextView = findViewById(R.id.txtQuestion);
         btnAW1 = findViewById(R.id.btnAnwserWrong1);
         btnAW2 = findViewById(R.id.btnAnwserWrong2);
