@@ -14,6 +14,7 @@ import androidx.annotation.ColorRes;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.example.firstapp.Controller.QuestionController;
+import com.example.firstapp.MainActivity;
 import com.example.firstapp.Model.Difficulty;
 import com.example.firstapp.R;
 
@@ -28,6 +29,7 @@ public class QuestionView extends AppCompatActivity {
     private QuestionController questionController;
     private Context context;
     private int currentQuestionIndex = 1;
+    int userId, rightAnswer, wrongAnswer, score;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -38,8 +40,9 @@ public class QuestionView extends AppCompatActivity {
         Intent intent = getIntent();
         context = getApplicationContext();
 
+        rightAnswer = wrongAnswer = 0;
         // Extract the values from MainActivity
-        int userId = intent.getIntExtra("userId", -1); // -1 is a default value
+        userId = intent.getIntExtra("userId", -1); // -1 is a default value
         String difficulty = intent.getStringExtra("difficulty");
 
         // Initialize UI
@@ -103,6 +106,20 @@ public class QuestionView extends AppCompatActivity {
                     currentQuestionIndex++;
                 }
                 else {
+
+                    // Create Intent to navigate to next view
+                    Intent intent = new Intent(QuestionView.this, ResultView.class);
+
+                    // Pass data in next view
+                    intent.putExtra("userId", userId);
+                    intent.putExtra("difficulty", difficulty);
+                    intent.putExtra("rightAnswer",rightAnswer);
+                    intent.putExtra("wrongAnswer",wrongAnswer);
+                    intent.putExtra("score",score);
+
+                    // Start the ResultView Activity
+                    startActivity(intent);
+
                 }
             }
         });
@@ -131,12 +148,16 @@ public class QuestionView extends AppCompatActivity {
         btnNext.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
 
         if (isCorrect) {
+            rightAnswer++;
+            score += 50;
             // Change the color of the button to green
             clickedButton.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
 
             // Show a Toast message
             Toast.makeText(context, "Bonne réponse!", Toast.LENGTH_SHORT).show();
         } else {
+            wrongAnswer++;
+            score -= 10;
             // Change the color of the button to red
             clickedButton.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 

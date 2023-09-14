@@ -64,6 +64,7 @@ public class DataHandleController {
             String username = null;
             String difficulty = null;
             int score = 0;
+            int rightQty = 0;
             int wrongQty = 0;
 
             for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
@@ -86,6 +87,9 @@ public class DataHandleController {
                     case "score":
                         score = Integer.parseInt(value.toString());
                         break;
+                    case "rightQty":
+                        rightQty = Integer.parseInt(value.toString());
+                        break;
                     case "wrongQty":
                         wrongQty = Integer.parseInt(value.toString());
                         break;
@@ -93,11 +97,12 @@ public class DataHandleController {
             }
 
             if (username != null) {
-                Result result = new Result(id, userId, username, Difficulty.valueOf(difficulty), score, wrongQty);
+                Result result = new Result(id, userId, username, Difficulty.valueOf(difficulty), score, rightQty,wrongQty);
                 dataFile.setResultData(result);
             }
         }
     }
+
     public void storeUserData(User user, Context context) {
         SharedPreferences userPref = context.getSharedPreferences("userData", Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = userPref.edit();

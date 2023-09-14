@@ -13,6 +13,9 @@
         android:theme="@style/Theme.FirstApp"
         tools:targetApi="31">
         <activity
+            android:name=".View.ResultView"
+            android:exported="false" />
+        <activity
             android:name=".View.QuestionView"
             android:exported="false" />
         <activity

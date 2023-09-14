@@ -8,64 +8,55 @@ public class Result {
     private String username;
     private Difficulty difficulty;
     private int score;
+    private int rightQty;
     private int wrongQty;
 
     // Getter & Setter
     public int getId() {
-        return id;
+        return this.id;
     }
-
     public void setId(int id) {
         this.id = id;
     }
-
     public int getUserId() {
-        return userId;
+        return this.userId;
     }
-
     public void setUserId(int userId) {
         this.userId = userId;
     }
-
     public String getUsername() {
-        return username;
+        return this.username;
     }
-
-    public void setUsername(String username) {
-        this.username = username;
-    }
-
     public Difficulty getDifficulty() {
         return difficulty;
     }
-
     public void setDifficulty(Difficulty difficulty) {
         this.difficulty = difficulty;
     }
-
     public int getScore() {
-        return score;
+        return this.score;
     }
-
     public void setScore(int score) {
         this.score = score;
     }
-
+    public int getRightQty(){return this.rightQty;}
+    public void setRightQty(int rightQty){this.rightQty = rightQty;}
     public int getWrongQty() {
-        return wrongQty;
+        return this.wrongQty;
     }
-
     public void setWrongQty(int wrongQty) {
         this.wrongQty = wrongQty;
     }
 
+
     // Constructor
-    public Result(int id, int userId, String username, Difficulty difficulty, int score, int wrongQty) {
+    public Result(int id, int userId, String username, Difficulty difficulty, int score, int rightQty, int wrongQty) {
         this.id = id;
         this.userId = userId;
         this.username = username;
         this.difficulty = difficulty;
         this.score = score;
+        this.rightQty = rightQty;
         this.wrongQty = wrongQty;
     }
 

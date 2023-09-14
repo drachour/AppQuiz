@@ -32,7 +32,11 @@ public class User {
     }
 
     public static int getLastId(){
-       return DataFile.getInstance().getLastId();
+        return DataFile.getInstance().getLastId();
+    }
+
+    public static User getUserById(int id){
+        return DataFile.getInstance().getUserData(id);
     }
 
     public static User getLastUser(){

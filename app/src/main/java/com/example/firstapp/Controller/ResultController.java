@@ -11,8 +11,8 @@ import java.util.Map;
 
 public class ResultController {
 
-    public Result createResult(int id, int userId, String username, Difficulty difficulty, int score, int wrongQty) {
-        return new Result(id, userId, username, difficulty, score, wrongQty);
+    public Result createResult(int id, int userId, String username, Difficulty difficulty, int score, int rightQty,int wrongQty) {
+        return new Result(id, userId, username, difficulty, score, rightQty,wrongQty);
     }
 
     public boolean validationResult(Context context){
@@ -26,6 +26,7 @@ public class ResultController {
             String username = null;
             String difficulty = null;
             int score = 0;
+            int rightQty = 0;
             int wrongQty = 0;
 
             for (Map.Entry<String, ?> entry : allEntries.entrySet()) {
@@ -48,6 +49,9 @@ public class ResultController {
                     case "score":
                         score = Integer.parseInt(value.toString());
                         break;
+                    case "rightQty":
+                        rightQty = Integer.parseInt(value.toString());
+                        break;
                     case "wrongQty":
                         wrongQty = Integer.parseInt(value.toString());
                         break;
@@ -55,7 +59,7 @@ public class ResultController {
             }
 
             if (username != null) {
-                Result result = new Result(id, userId, username, Difficulty.valueOf(difficulty), score, wrongQty);
+                Result result = new Result(id, userId, username, Difficulty.valueOf(difficulty), score, rightQty,wrongQty);
                 dataInstance.setResultData(result);
                 return true;
             }
