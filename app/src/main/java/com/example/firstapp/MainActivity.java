@@ -13,40 +13,44 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
-import android.widget.TextView;
 
-import com.example.firstapp.Controller.DataHandleController;
-import com.example.firstapp.Controller.UserController;
+import com.example.firstapp.Model.Difficulty;
 import com.example.firstapp.Model.User;
 import com.example.firstapp.View.QuestionView;
 
-import java.util.List;
-
 public class MainActivity extends AppCompatActivity {
 
-    EditText editText1;
-    Button myButton;
+    EditText txtusername;
+    Button btnStart;
     RadioGroup difficultyGroup;
     RadioButton radioButtonEasy, radioButtonNormal, radioButtonHard;
-    UserController userController;
-    User currentUser;
+    User oldUser;
+    Difficulty difficulty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        DataHandleController dataHandleController = new DataHandleController();
-        dataHandleController.retrieveStoredData(getApplicationContext());
+        User.retrievedData(getApplicationContext());
 
-        userController = new UserController();
-
-        editText1 = findViewById(R.id.editTextText);
-        myButton = findViewById(R.id.button);
+        txtusername = findViewById(R.id.editTextText);
+        btnStart = findViewById(R.id.button);
         difficultyGroup = findViewById(R.id.radioGroup);
         radioButtonEasy = findViewById(R.id.radioButton);
         radioButtonNormal = findViewById(R.id.radioButton2);
         radioButtonHard = findViewById(R.id.radioButton3);
+
+        // Retrieve stored username if it exists
+       User  currentUser = User.getLastUser();
+
+        if (currentUser != null) {
+            txtusername.setText(currentUser.getUsername());
+            oldUser = new User(currentUser.getId(),currentUser.getUsername(),currentUser.getIsLast());
+        }else{
+            // Disable the button
+            btnStart.setEnabled(false);
+        }
 
         TextWatcher textWatcher = new TextWatcher() {
             @Override
@@ -59,65 +63,95 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void afterTextChanged(Editable e) {
-
                 // Enable the button if EditTexts have text
-                myButton.setEnabled(!editText1.getText().toString().isEmpty());
+                btnStart.setEnabled(!txtusername.getText().toString().isEmpty());
             }
         };
 
-        editText1.addTextChangedListener(textWatcher);
+        txtusername.addTextChangedListener(textWatcher);
 
-        // Disable the button
-        myButton.setEnabled(false);
-
-        // Retrieve stored username if it exists
-        currentUser = userController.getLastUser();
-        if (currentUser != null) {
-            editText1.setText(currentUser.getUsername());
-        }
-
-        myButton.setOnClickListener(new View.OnClickListener() {
+        btnStart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
                 // Get difficulty
-                String difficulty = userController.getDifficultyFromRadioButtons(difficultyGroup,radioButtonEasy,radioButtonNormal,radioButtonHard);
+                getDifficultyFromRadioButtons();
 
-                if(currentUser != null){
-                    if(!userController.validationUser(currentUser)) {
-                        // Update current user before change
-                        dataHandleController.updateStoredUser(currentUser,getApplicationContext());
+                if(User.getCountList() > 0){
 
-                        // Store data user
-                        currentUser.setId(User.getLastId() + 1);
-                        currentUser.setUsername(editText1.getText().toString());
+                    String oldUsername = oldUser.getUsername().toString().toLowerCase();
+                    String currentUsername = txtusername.getText().toString().toLowerCase();
 
-                        dataHandleController.storeUserData(currentUser,getApplicationContext());
+                    if(!oldUsername.equals(currentUsername)){
 
-                    }else {
-                        // Add new data user
-                        currentUser.setId(User.getLastId() + 1);
-                        currentUser.setUsername(editText1.getText().toString());
+                        oldUser.setIsLast("false");
+                        User.updateUser(oldUser);
 
-                        dataHandleController.storeUserData(currentUser,getApplicationContext());
+                        if(!User.isExisting(currentUsername)){
+                            // Store new user
+                            User newUser = new User(User.getLastId() + 1, txtusername.getText().toString(), "true");
+                            User.addUser(newUser);
+                            oldUser = newUser;
+                        }else{
+                            // Update user
+                            User newUser = User.getUserBy(currentUsername);
+                            newUser.setIsLast("true");
+                            User.updateUser(newUser);
+                            oldUser = newUser;
+                        }
                     }
-                }else{
-                    // Store new data user
-                    currentUser = new User(User.getLastId() + 1, editText1.getText().toString(), "true");
-                    dataHandleController.storeUserData(currentUser,getApplicationContext());
+                }
+                if(currentUser == null){
+                    // Store new user
+                    User newUser = new User(User.getLastId() + 1, txtusername.getText().toString(), "true");
+                    User.addUser(newUser);
+                    oldUser = newUser;
                 }
 
+                User.storeData(getApplicationContext());
 
-                // Create Intent to navigate to next view
-                Intent intent = new Intent(MainActivity.this, QuestionView.class);
+                startActivity(navigate(MainActivity.this, QuestionView.class));
 
-                // Pass data in next view
-                intent.putExtra("userId", currentUser.getId());
-                intent.putExtra("difficulty", difficulty);
-
-                // Start the QuestionView Activity
-                startActivity(intent);
             }
         });
+    }
+
+    public Intent navigate(Context packacgeContext, Class<?> cls) {
+        Intent intent = new Intent(packacgeContext, QuestionView.class);
+
+        // Pass data in next view
+        intent.putExtra("userId", oldUser.getId());
+        intent.putExtra("difficulty", difficulty.toString());
+
+        return intent;
+    }
+
+    private void getDifficultyFromRadioButtons() {
+        int selectedId = difficultyGroup.getCheckedRadioButtonId();
+        String _difficulty = "";
+
+        if (selectedId == radioButtonEasy.getId()) {
+            _difficulty = "Easy";
+        } else if (selectedId == radioButtonNormal.getId()) {
+            _difficulty = "Normal";
+        } else if (selectedId == radioButtonHard.getId()) {
+            _difficulty = "Hard";
+        }
+
+        difficulty = Difficulty.valueOf(_difficulty);
+    }
+    private void clearPref(){
+        SharedPreferences userPref = getApplicationContext().getSharedPreferences("userData", Context.MODE_PRIVATE);
+        SharedPreferences resultPref = getApplicationContext().getSharedPreferences("resultData", Context.MODE_PRIVATE);
+
+        // Clear userData SharedPreferences
+        SharedPreferences.Editor userEditor = userPref.edit();
+        userEditor.clear();
+        userEditor.apply();
+
+        // Clear resultData SharedPreferences
+        SharedPreferences.Editor resultEditor = resultPref.edit();
+        resultEditor.clear();
+        resultEditor.apply();
     }
 }

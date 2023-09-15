@@ -1,8 +1,12 @@
 package com.example.firstapp.Model;
 
+import android.content.Context;
+
+import com.example.firstapp.Data.DataFile;
+
 public class Result {
 
-    // Variable
+    // Variables
     private int id;
     private int userId;
     private String username;
@@ -48,7 +52,6 @@ public class Result {
         this.wrongQty = wrongQty;
     }
 
-
     // Constructor
     public Result(int id, int userId, String username, Difficulty difficulty, int score, int rightQty, int wrongQty) {
         this.id = id;
@@ -60,13 +63,26 @@ public class Result {
         this.wrongQty = wrongQty;
     }
 
-    @Override
-    public String toString() {
-        return "Result{" +
-                "username='" + username + '\'' +
-                ", difficulty=" + difficulty +
-                ", score=" + score +
-                ", wrongQty=" + wrongQty +
-                '}';
+    // Method
+    public static Result getResultBy(int userId){
+        return DataFile.getInstance().getResultDataBy(userId);
+    }
+    public static int getLastResultId(){
+        return DataFile.getInstance().getLastResultId();
+    }
+
+    public static void addResult(Result newResult){
+        DataFile.getInstance().addResult(newResult);
+    }
+    public static void updateResult(Result updateResult){
+        DataFile.getInstance().updateResult(updateResult);
+    }
+
+    public static void retrievedData(Context context){
+        DataFile dataFile = DataFile.getInstance();
+        dataFile.retrieveStoredData(context,1);
+    }
+    public static void storeData(Context context){
+        DataFile.getInstance().storeData(context,1);
     }
 }

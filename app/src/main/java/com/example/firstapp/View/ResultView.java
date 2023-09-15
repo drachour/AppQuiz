@@ -9,64 +9,92 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 
-import com.example.firstapp.Controller.ResultController;
 import com.example.firstapp.MainActivity;
 import com.example.firstapp.Model.Difficulty;
+import com.example.firstapp.Model.Result;
 import com.example.firstapp.Model.User;
 import com.example.firstapp.R;
 
 public class ResultView extends AppCompatActivity {
 
-    private TextView score;
-    private Button btnRestart, btnMenu;
+    private TextView oldScore, oldMsg, score;
+    private Button btnMenu, btnRestart;
+    private User currentUser;
+    private Difficulty difficulty;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_result_view);
 
-        // Get the Intent that started this activity
-        Intent intent = getIntent();
-
-        int userId = intent.getIntExtra("userId", -1);
-        String difficulty = intent.getStringExtra("difficulty");
-        int rightAnswer = intent.getIntExtra("rightAnswer", 0);
-        int wrongAnswer = intent.getIntExtra("wrongAnswer", 0);
-        int scores = intent.getIntExtra("score", 0);
-
-        User currentUser = User.getUserById(userId);
-
-        ResultController resultController = new ResultController();
-        resultController.createResult(1, userId, currentUser.getUsername(), Difficulty.valueOf(difficulty), scores, rightAnswer,wrongAnswer);
-
+        oldScore = findViewById(R.id.txtOldScore);
+        oldMsg = findViewById(R.id.txtOldMsg);
         score = findViewById(R.id.txtScore);
-        score.setText(String.valueOf(scores));
 
         btnRestart = findViewById(R.id.btnRestart);
         btnMenu = findViewById(R.id.btnMenu);
+
+        Result.retrievedData(getApplicationContext());
+
+        oldScore.setEnabled(false);
+        oldMsg.setEnabled(false);
+
+        // Init
+        init();
 
         // Add onClickListeners for buttons to handle user input
         btnRestart.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-
-                Intent intent = new Intent(ResultView.this, QuestionView.class);
-
-                intent.putExtra("userId", currentUser.getId());
-                intent.putExtra("difficulty", difficulty);
-
-                startActivity(intent);
+               startActivity(navigate(ResultView.this,QuestionView.class));
             }
         });
 
         btnMenu.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(ResultView.this, MainActivity.class);
-
-                startActivity(intent);
+                startActivity(navigate(ResultView.this,MainActivity.class));
             }
         });
 
+    }
+
+    public void init(){
+        Intent intent = getIntent();
+        // Get the Intent that started this activity
+        int userId = intent.getIntExtra("userId", -1);
+        difficulty = Difficulty.valueOf(intent.getStringExtra("difficulty"));
+        int rightAnswer = intent.getIntExtra("rightAnswer", 0);
+        int wrongAnswer = intent.getIntExtra("wrongAnswer", 0);
+        int scores = intent.getIntExtra("score", 0);
+
+        currentUser = User.getUserBy(userId);
+        Result result = Result.getResultBy(userId);
+
+        if(result != null){
+            oldScore.setText(String.valueOf(result.getScore()));
+            oldScore.setEnabled(true);
+            oldMsg.setEnabled(true);
+
+            result.setScore(scores);
+
+            Result.updateResult(result);
+        }else{
+            Result newResult = new Result(Result.getLastResultId()+1, currentUser.getId(), currentUser.getUsername(),difficulty , scores, rightAnswer, wrongAnswer);
+            Result.addResult(newResult);
+        }
+
+        score.setText(String.valueOf(scores));
+        Result.storeData(getApplicationContext());
+    }
+
+    public Intent navigate(Context packageContext, Class<?> cls){
+        Intent intent = new Intent(packageContext, cls);
+        if(cls != MainActivity.class){
+            intent.putExtra("userId", currentUser.getId());
+            intent.putExtra("difficulty", difficulty.toString());
+        }
+
+        return intent;
     }
 }

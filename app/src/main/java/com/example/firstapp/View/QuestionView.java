@@ -10,40 +10,42 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.annotation.ColorRes;
 import androidx.appcompat.app.AppCompatActivity;
 
-import com.example.firstapp.Controller.QuestionController;
-import com.example.firstapp.MainActivity;
 import com.example.firstapp.Model.Difficulty;
+import com.example.firstapp.Model.Question;
+import com.example.firstapp.Model.QuestionGenerator;
 import com.example.firstapp.R;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 public class QuestionView extends AppCompatActivity {
 
     private TextView questionTextView;
     private Button btnAW1, btnAW2, btnAW3, btnAW4, btnNext;
-    private QuestionController questionController;
-    private Context context;
-    private int currentQuestionIndex = 1;
-    int userId, rightAnswer, wrongAnswer, score;
+
+    private int currentQuestionIndex;
+    private List<Question> questions;
+    private int userId, rightAnswer, wrongAnswer, score;
+    private Difficulty difficulty;
+    private List<Button> btnAw = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_question_view);
 
-        // Get the Intent that started this activity
-        Intent intent = getIntent();
-        context = getApplicationContext();
-
-        rightAnswer = wrongAnswer = 0;
         // Extract the values from MainActivity
+        Intent intent = getIntent();
         userId = intent.getIntExtra("userId", -1); // -1 is a default value
-        String difficulty = intent.getStringExtra("difficulty");
+        difficulty = Difficulty.valueOf(intent.getStringExtra("difficulty"));
+
+        this.questions = QuestionGenerator.generateQuestion(difficulty);
+        currentQuestionIndex = 0;
+
+        rightAnswer = wrongAnswer = score = 0;
 
         // Initialize UI
         questionTextView = findViewById(R.id.txtQuestion);
@@ -53,11 +55,13 @@ public class QuestionView extends AppCompatActivity {
         btnAW4 = findViewById(R.id.btnAnwserWrong4);
         btnNext = findViewById(R.id.btnNext);
 
+        btnAw.add(btnAW1);
+        btnAw.add(btnAW2);
+        btnAw.add(btnAW3);
+        btnAw.add(btnAW4);
+
         btnNext.setEnabled(false);
         btnNext.setBackgroundTintList(ColorStateList.valueOf(Color.GRAY));
-
-        // Initialize QuestionController
-        questionController = new QuestionController(Difficulty.valueOf(difficulty));
 
         // Populate the UI
         updateUI();
@@ -66,82 +70,65 @@ public class QuestionView extends AppCompatActivity {
         btnAW1.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkAnswerAndUpdate(btnAW1, btnAW1.getText().toString());
+                checkAnswerAndUpdate(btnAW1);
             }
         });
 
         btnAW2.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkAnswerAndUpdate(btnAW2, btnAW2.getText().toString());
+                checkAnswerAndUpdate(btnAW2);
             }
         });
 
         btnAW3.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkAnswerAndUpdate(btnAW3, btnAW3.getText().toString());
+                checkAnswerAndUpdate(btnAW3);
             }
         });
 
         btnAW4.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                checkAnswerAndUpdate(btnAW4, btnAW4.getText().toString());
+                checkAnswerAndUpdate(btnAW4);
             }
         });
 
         btnNext.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                // Next question and update the UI
-                questionController.loadNextQuestion();
-                if(currentQuestionIndex != 5){
-                    updateUI();
 
-                    // Re-enable all button disable
-                    enableAllAnswerButtons(true);
-                    btnNext.setEnabled(false);
-
-                    currentQuestionIndex++;
+                if(isFinish())
+                {
+                   startActivity(navigate(QuestionView.this, ResultView.class));
+                }else {
+                    // Next question and update the UI
+                    loadNextQuestion();
                 }
-                else {
 
-                    // Create Intent to navigate to next view
-                    Intent intent = new Intent(QuestionView.this, ResultView.class);
-
-                    // Pass data in next view
-                    intent.putExtra("userId", userId);
-                    intent.putExtra("difficulty", difficulty);
-                    intent.putExtra("rightAnswer",rightAnswer);
-                    intent.putExtra("wrongAnswer",wrongAnswer);
-                    intent.putExtra("score",score);
-
-                    // Start the ResultView Activity
-                    startActivity(intent);
-
-                }
             }
         });
     }
 
-    private void updateUI() {
-        String currentQuestion = questionController.getCurrentQuestion();
-        List<String> currentChoices = questionController.getCurrentChoices();
+    public void updateUI() {
+        String currentQuestion = getCurrentQuestion();
+        List<String> currentChoices = getCurrentChoices();
 
         questionTextView.setText(currentQuestion);
-        btnAW1.setText(currentChoices.get(0));
-        btnAW2.setText(currentChoices.get(1));
-        btnAW3.setText(currentChoices.get(2));
-        btnAW4.setText(currentChoices.get(3));
+        int index = 0;
+        for (Button btn : btnAw) {
+            btn.setText(currentChoices.get(index));
+            index++;
+        }
 
         // Reset button colors to default
         resetButtonColors();
     }
 
     // Update the checkAnswerAndUpdate method
-    private void checkAnswerAndUpdate(Button clickedButton, String choice) {
-        boolean isCorrect = questionController.checkAnswer(choice);
+    public void checkAnswerAndUpdate(Button currentClick) {
+        boolean isCorrect = checkAnswer(currentClick.getText().toString());
 
         enableAllAnswerButtons(false);
         btnNext.setEnabled(true);
@@ -151,45 +138,89 @@ public class QuestionView extends AppCompatActivity {
             rightAnswer++;
             score += 50;
             // Change the color of the button to green
-            clickedButton.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
+            currentClick.setBackgroundTintList(ColorStateList.valueOf(Color.GREEN));
 
             // Show a Toast message
-            Toast.makeText(context, "Bonne réponse!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Bonne réponse!", Toast.LENGTH_SHORT).show();
         } else {
             wrongAnswer++;
             score -= 10;
             // Change the color of the button to red
-            clickedButton.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
+            currentClick.setBackgroundTintList(ColorStateList.valueOf(Color.RED));
 
             // Show a Toast message
-            Toast.makeText(context, "Mauvaise réponse!", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Mauvaise réponse!", Toast.LENGTH_SHORT).show();
         }
-        disableButtonColors(clickedButton);
+        disableButtonColors(currentClick);
     }
 
     // Enable or disable all answer buttons
-    private void enableAllAnswerButtons(boolean enable) {
-        btnAW1.setEnabled(enable);
-        btnAW2.setEnabled(enable);
-        btnAW3.setEnabled(enable);
-        btnAW4.setEnabled(enable);
+    public void enableAllAnswerButtons(boolean enable) {
+        for (Button btn : btnAw) {
+            btn.setEnabled(enable);
+        }
+    }
+
+    public boolean isFinish() {
+        if(currentQuestionIndex != 4){
+            return false;
+        }
+        return true;
+    }
+
+    public void loadNextQuestion() {
+        currentQuestionIndex++;
+        updateUI();
+
+        // Re-enable all button disable
+        enableAllAnswerButtons(true);
+        btnNext.setEnabled(false);
+
+    }
+
+    public Intent navigate(Context packageContext, Class<?> cls){
+        Intent intent = new Intent(packageContext, cls);
+
+        // Pass data in next view
+        intent.putExtra("userId", userId);
+        intent.putExtra("difficulty", difficulty.toString());
+        intent.putExtra("rightAnswer",rightAnswer);
+        intent.putExtra("wrongAnswer",wrongAnswer);
+        intent.putExtra("score",score);
+
+        return intent;
     }
 
     // Button change colors when disable
     private void disableButtonColors(Button currentButton){
-        List<Button> buttons = Arrays.asList(btnAW1, btnAW2, btnAW3, btnAW4);
-        for (Button button : buttons) {
-            if(button != currentButton){
-                button.setBackgroundTintList(ColorStateList.valueOf(Color.GRAY));
+        for (Button btn : btnAw) {
+            if(btn != currentButton){
+                btn.setBackgroundTintList(ColorStateList.valueOf(Color.GRAY));
             }
         }
     }
+
     // Reset button colors to default
     private void resetButtonColors() {
-        btnAW1.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
-        btnAW2.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
-        btnAW3.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
-        btnAW4.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        for (Button btn : btnAw) {
+            btn.setBackgroundTintList(ColorStateList.valueOf(Color.WHITE));
+        }
         btnNext.setBackgroundTintList(ColorStateList.valueOf(Color.GRAY));
     }
+
+    private String getCurrentQuestion() {
+        return questions.get(currentQuestionIndex).getQuestionText();
+    }
+
+    private List<String> getCurrentChoices() {
+        List<String> choices = new ArrayList<>(questions.get(currentQuestionIndex).getWrongAnswers());
+        choices.add(questions.get(currentQuestionIndex).getCorrectAnswer());
+        Collections.shuffle(choices);
+        return choices;
+    }
+
+    private boolean checkAnswer(String selectedAnswer) {
+        return questions.get(currentQuestionIndex).getCorrectAnswer().equals(selectedAnswer);
+    }
+
 }
